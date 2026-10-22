@@ -1,0 +1,22 @@
+# Virtual Environment
+.venv/
+env/
+venv/
+
+# Python Cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Large Datasets and Foundation Models (>100MB)
+models/
+*.onnx
+*.npz
+*.pdf
+data/unified_dataset/
+data/lenserase_official/
+
+# IDE and OS files
+.DS_Store
+.idea/
+.vscode/
