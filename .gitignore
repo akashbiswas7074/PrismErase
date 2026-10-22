@@ -13,6 +13,7 @@ models/
 *.onnx
 *.npz
 *.pdf
+!paper/*.pdf
 data/unified_dataset/
 data/lenserase_official/
 
