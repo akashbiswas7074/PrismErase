@@ -125,14 +125,44 @@ def prismfusion(source_img: np.ndarray, generated_img: np.ndarray, mask: np.ndar
                 continue
             retained_res[sl] |= comp
 
-    # Close and Dilate to form complete connected edit region
+    # Close and Dilate to form primary edit support
     rad_close = max(1, int(round(3.0 * s)))
     rad_dil5 = max(1, int(round(4.0 * s)))
-    S_res = ndimage.binary_closing(retained_res, structure=disk_structure(rad_close))
-    S_res = ndimage.binary_dilation(S_res, structure=disk_structure(rad_dil5))
+    S_primary = ndimage.binary_closing(retained_res, structure=disk_structure(rad_close))
+    S_primary = ndimage.binary_dilation(S_primary, structure=disk_structure(rad_dil5))
 
-    # Total Edit Support S
-    S = M_dil | S_res
+    # --- LensErase Dual-Branch Feature: Gamma Branch (gamma = 0.75) ---
+    # Detects subtle low-contrast shadows and reflections in dark regions
+    gamma = 0.75
+    src_gamma = (np.clip(I_src / 255.0, 0.0, 1.0) ** gamma) * 255.0
+    gen_gamma = (np.clip(I_gen / 255.0, 0.0, 1.0) ** gamma) * 255.0
+    diff_gamma = gen_gamma - src_gamma
+
+    mid_gamma = np.empty_like(diff_gamma)
+    for c in range(3):
+        mid_gamma[..., c] = ndimage.gaussian_filter(diff_gamma[..., c], sigma=sigma_base, mode='reflect')
+
+    d_mag_gamma = np.max(np.abs(mid_gamma), axis=-1)
+    cand_gamma = (d_mag_gamma >= tau_low) & (luma_src < 100.0)
+    cand_gamma_opened = ndimage.binary_opening(cand_gamma, structure=disk_structure(rad_s))
+    lab_g, n_g = ndimage.label(cand_gamma_opened, structure=struct_8conn)
+
+    retained_gamma = np.zeros((H, W), dtype=bool)
+    if n_g > 0:
+        slices_g = ndimage.find_objects(lab_g)
+        for i in range(1, n_g + 1):
+            sl = slices_g[i - 1]
+            if sl is None:
+                continue
+            comp_g = (lab_g[sl] == i)
+            # Retain only if connected to primary support and lies predominantly in dark regions
+            if np.sum(comp_g) >= min_area:
+                dil_comp = ndimage.binary_dilation(comp_g, structure=struct_8conn)
+                if np.any(dil_comp & S_primary[sl]):
+                    retained_gamma[sl] |= comp_g
+
+    # Total Edit Support S combines Primary Support and Gamma Branch
+    S = M_dil | S_primary | retained_gamma
 
     # 4. Curvature-Guided Geodesic Feathering Weight
     # Computes spatial distance modulated by image gradients to avoid blurring across sharp natural borders
@@ -170,8 +200,11 @@ def prismfusion(source_img: np.ndarray, generated_img: np.ndarray, mask: np.ndar
         'fused_output': fused_uint8,
         'alpha': alpha,
         'support_mask': S,
-        'residual_support': S_res,
+        'residual_support': (S_primary | retained_gamma),
         'dynamic_tau_low': float(tau_low),
         'dynamic_tau_high': float(tau_high),
         'background_locked_ratio': float(np.mean(bg_locked))
     }
+
+AdaptiveGeodesicPrismFusion = prismfusion
+

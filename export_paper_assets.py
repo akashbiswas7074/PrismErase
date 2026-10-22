@@ -177,7 +177,7 @@ def export_all_figures():
         recall.append(r)
         f1_scores.append(f)
 
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 5.2), dpi=300)
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(6.5, 7.5), dpi=300)
     cax = ax1.matshow(cm, cmap='Blues')
     for i in range(num_classes):
         for j in range(num_classes):
@@ -185,11 +185,12 @@ def export_all_figures():
             color = 'white' if val >= 10 else 'black'
             ax1.text(j, i, str(val), ha='center', va='center', color=color, fontweight='bold', fontsize=12)
 
+    short_names = ['FG Obj', 'Text', 'Watermark', 'Photo', 'Cables']
     ax1.set_xticks(range(num_classes))
-    ax1.set_xticklabels([c.replace(' ', '\n') for c in class_names], fontsize=8.5, fontweight='bold')
+    ax1.set_xticklabels(short_names, fontsize=9.5, fontweight='bold')
     ax1.set_yticks(range(num_classes))
-    ax1.set_yticklabels(class_names, fontsize=9, fontweight='bold')
-    ax1.set_title('PrismErase 5-Domain Confusion Matrix (N=100 Samples)', fontsize=11, fontweight='bold', pad=15)
+    ax1.set_yticklabels(short_names, fontsize=9.5, fontweight='bold')
+    ax1.set_title('5-Domain Confusion Matrix (N=100)', fontsize=11, fontweight='bold', pad=12)
     fig.colorbar(cax, ax=ax1, fraction=0.046, pad=0.04)
 
     x = np.arange(num_classes)
@@ -202,15 +203,15 @@ def export_all_figures():
         ax2.text(x[i] + width, f1_scores[i] + 0.02, f'{f1_scores[i]:.2f}', ha='center', va='bottom', fontweight='bold', fontsize=8.5)
 
     ax2.set_xticks(x)
-    ax2.set_xticklabels([c.replace(' ', '\n') for c in class_names], fontsize=8.5, fontweight='bold')
+    ax2.set_xticklabels(short_names, fontsize=9.5, fontweight='bold')
     ax2.set_ylabel('Score (0.0 to 1.0)', fontsize=10, fontweight='bold')
     ax2.set_ylim(0, 1.15)
     ax2.set_title('Evaluated Precision, Recall & F1-Scores', fontsize=11, fontweight='bold')
     ax2.grid(axis='y', linestyle='--', alpha=0.5)
-    ax2.legend(loc='lower right', fontsize=9.5)
+    ax2.legend(loc='lower right', fontsize=9.0)
     plt.tight_layout()
     fig3_path = FIG_DIR / "fig3_confusion_matrix_f1.png"
-    plt.savefig(fig3_path, dpi=300, bbox_inches='tight')
+    plt.savefig(fig3_path, dpi=300, bbox_inches='tight', pad_inches=0.15)
     plt.close()
     print(f"✓ Saved: {fig3_path}")
 
@@ -218,7 +219,7 @@ def export_all_figures():
     # FIGURE 4: 6-Axis Capability Radar
     # -------------------------------------------------------------
     print("Exporting Figure 4: 6-Axis Operational Capability Radar...")
-    fig = plt.figure(figsize=(7, 7), dpi=300)
+    fig = plt.figure(figsize=(5.5, 5.5), dpi=300)
     ax = fig.add_subplot(1, 1, 1, polar=True)
     radar_categories = [
         'Background\nPreservation',
@@ -234,16 +235,23 @@ def export_all_figures():
     scores = [98.5, 96.0, 92.0, 89.0, 94.5, 88.0]
     scores += scores[:1]
 
-    ax.plot(angles, scores, color='#2ecc71', linewidth=2.5, linestyle='solid', label='PrismErase Operational Profile')
-    ax.fill(angles, scores, color='#2ecc71', alpha=0.25)
+    ax.plot(angles, scores, color='#16a085', linewidth=2.5, linestyle='solid', label='PrismErase Profile')
+    ax.fill(angles, scores, color='#2ecc71', alpha=0.30)
+    ax.scatter(angles[:-1], scores[:-1], color='#16a085', s=35, zorder=5)
+
     ax.set_xticks(angles[:-1])
-    ax.set_xticklabels(radar_categories, fontsize=9.5, fontweight='bold')
-    ax.set_ylim(0, 100)
-    ax.set_title('6-Axis Operational Capability Radar', fontsize=12, fontweight='bold', pad=25)
-    ax.legend(loc='lower right', bbox_to_anchor=(1.2, 0.0), fontsize=9.5)
+    ax.set_xticklabels(radar_categories, fontsize=9.5, fontweight='bold', color='#2c3e50')
+    ax.tick_params(pad=16)
+    ax.set_ylim(0, 115)
+    ax.set_yticks([20, 40, 60, 80, 100])
+    ax.set_yticklabels(['20', '40', '60', '80', '100'], fontsize=8, color='#7f8c8d')
+    ax.set_rlabel_position(30)
+    ax.grid(color='#bdc3c7', linestyle='--', linewidth=0.8, alpha=0.7)
+    ax.set_title('6-Axis Operational Capability Radar', fontsize=12, fontweight='bold', pad=22)
+    ax.legend(loc='lower center', bbox_to_anchor=(0.5, -0.20), fontsize=9.5, framealpha=0.95)
     plt.tight_layout()
     fig4_path = FIG_DIR / "fig4_operational_radar.png"
-    plt.savefig(fig4_path, dpi=300, bbox_inches='tight')
+    plt.savefig(fig4_path, dpi=300, bbox_inches='tight', pad_inches=0.35)
     plt.close()
     print(f"✓ Saved: {fig4_path}")
 
@@ -258,31 +266,32 @@ def export_all_figures():
     tr_loss = [1.494, 1.555, 1.584, 1.565, 1.512]
     vl_loss = [1.598, 1.531, 1.374, 1.479, 1.442]
 
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 4.5), dpi=300)
-    bars = ax1.bar(folds_x, psnr_vals, color='#2ecc71', edgecolor='black', width=0.55)
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(6.2, 5.8), dpi=300)
+    bars = ax1.bar(folds_x, psnr_vals, color='#2ecc71', edgecolor='black', width=0.52)
     ax1.axhline(mean_psnr, color='#e74c3c', linestyle='--', lw=2.0, label=f'Mean PSNR: {mean_psnr:.1f} dB (±{std_psnr:.2f})')
     for b in bars:
         y = b.get_height()
-        ax1.text(b.get_x() + b.get_width()/2.0, y + 0.8, f'{y:.1f} dB', ha='center', va='bottom', fontweight='bold', fontsize=9.5)
+        ax1.text(b.get_x() + b.get_width()/2.0, y + 1.0, f'{y:.1f} dB', ha='center', va='bottom', fontweight='bold', fontsize=9.0)
     ax1.set_title('5-Fold Cross-Validation: Validation PSNR Stability', fontsize=11, fontweight='bold')
-    ax1.set_ylabel('Measured PSNR (dB)', fontsize=10)
-    ax1.set_ylim(0, 80)
+    ax1.set_ylabel('Measured PSNR (dB)', fontsize=9.5)
+    ax1.set_ylim(0, 85)
     ax1.grid(axis='y', linestyle='--', alpha=0.5)
-    ax1.legend(loc='upper right', fontsize=9.5)
+    ax1.legend(loc='upper right', fontsize=9.0)
 
     x_idx = np.arange(5)
     w = 0.35
     ax2.bar(x_idx - w/2, tr_loss, w, label='Train Loss', color='#3498db', edgecolor='black')
     ax2.bar(x_idx + w/2, vl_loss, w, label='Val Loss', color='#9b59b6', edgecolor='black')
     ax2.set_xticks(x_idx)
-    ax2.set_xticklabels(folds_x, fontweight='bold')
+    ax2.set_xticklabels(folds_x, fontweight='bold', fontsize=9.5)
     ax2.set_title('5-Fold Cross-Validation: Loss Consistency', fontsize=11, fontweight='bold')
-    ax2.set_ylabel('Loss Value', fontsize=10)
+    ax2.set_ylabel('Loss Value', fontsize=9.5)
+    ax2.set_ylim(0, 2.0)
     ax2.grid(axis='y', linestyle='--', alpha=0.5)
-    ax2.legend(loc='upper right', fontsize=9.5)
+    ax2.legend(loc='upper right', fontsize=9.0)
     plt.tight_layout()
     fig5_path = FIG_DIR / "fig5_cross_validation_stability.png"
-    plt.savefig(fig5_path, dpi=300, bbox_inches='tight')
+    plt.savefig(fig5_path, dpi=300, bbox_inches='tight', pad_inches=0.15)
     plt.close()
     print(f"✓ Saved: {fig5_path}")
 
