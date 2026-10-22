@@ -45,7 +45,7 @@ Object erasing and visual inpainting are cornerstones of automated image synthes
 
 \begin{figure*}[t]
 \centering
-\includegraphics[width=\textwidth]{figures/fig1_teaser_matrix.png}
+\includegraphics[width=0.95\textwidth,height=0.45\textheight,keepaspectratio]{figures/fig1_teaser_matrix.png}
 \caption{\textbf{PrismErase Multi-Scenario Inpainting Suite.} Row 1: User portrait spectacles hardware removal strictly preserving eye apertures ($62.8\text{ dB}$). Row 2: Shirt buttons and placket removal ($70.6\text{ dB}$). Row 3: High-contrast watermark and text stamp clean erasure ($64.7\text{ dB}$). Row 4: Complex photographic benchmark scene with complete parrot object removal ($47.2\text{ dB}$).}
 \label{fig:teaser}
 \end{figure*}
@@ -129,7 +129,7 @@ This mathematically forces $I_{\text{fused}}(\mathbf{x}) \equiv I(\mathbf{x})$ f
 \section{Experimental Evaluation}
 \label{sec:experiments}
 
-\subsection{Benchmark Dataset & Implementation Setup}
+\subsection{Benchmark Dataset \& Implementation Setup}
 We train and evaluate PrismErase on a unified 2,095-case corpus containing: (1) CVPR NTIRE22 Inpainting Benchmark (999 photographic scenes)~\cite{peleg2022ntire}; (2) Reversible Triplet Synthetic Engine (1,000 cases of watermarks, text banners, cables, and wires); (3) Official Benchmark Suite (76 curated objects); and (4) HuggingFace ObjectRemovalAlpha (20 variable-lighting scenes). All models are evaluated at 256–512px resolutions.
 
 \begin{table}[t]
